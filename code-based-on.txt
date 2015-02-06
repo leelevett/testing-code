@@ -1,0 +1,190 @@
+package com.yell.ucssearch.api.response;
+
+import com.yell.availabilitymonitor.omniture.OmnitureAvailabilityMonitor;
+import com.yell.businessobjects.ucs.UserTerms;
+import com.yell.identityservice.client.IdentityServiceInterface;
+import com.yell.ucssearch.dataobjects.SearchState;
+import com.yell.ucssearch.search.SearchRequest;
+import com.yell.ucssearch.search.SearchResponse;
+import com.yell.ucssearch.util.SearchTimings;
+import com.yell.ucssearch.util.UcsProperties;
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
+import org.apache.commons.io.FileUtils;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.internal.verification.VerificationModeFactory;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.rule.PowerMockRule;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+
+import static org.mockito.Matchers.anyBoolean;
+import static org.powermock.api.mockito.PowerMockito.doReturn;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.spy;
+import static org.powermock.api.mockito.PowerMockito.verifyPrivate;
+import static org.powermock.api.mockito.PowerMockito.when;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
+
+@RunWith(JUnitParamsRunner.class)
+@PrepareForTest({
+    UcsProperties.class, OmnitureAvailabilityMonitor.class, IdentityServiceInterface.class, TagsXmlBuilder.class
+})
+public class TagsXmlBuilderTest {
+  @Rule
+  public PowerMockRule rule = new PowerMockRule();
+
+  public static File resourcesDirectory;
+  private static Boolean errorInInitializer = false;
+
+  @BeforeClass
+  @SuppressWarnings("all")
+  public static void setUp() throws IOException {
+    resourcesDirectory = new File("resources/");
+    if(!resourcesDirectory.exists()){
+      resourcesDirectory.mkdir();
+      FileUtils.touch(new File("resources/com.yell.availabilityMonitor.properties"));
+    } else {
+      errorInInitializer = true;
+      throw new ExceptionInInitializerError(
+          String.format(
+              "resources dir already exists at: \"%s\". Please check and remove if possible, if not change this test.",
+              resourcesDirectory.getAbsolutePath())
+      );
+    }
+  }
+  @AfterClass
+  public static void tearDown() throws IOException {
+    if(resourcesDirectory.exists() &amp;&amp; !errorInInitializer){
+      FileUtils.deleteDirectory(resourcesDirectory);
+    }
+  }
+
+  @Test
+  @Parameters({
+      "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML\\, like Gecko)" +
+          " Version/6.0 Mobile/10A5376e Safari/8536.25 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+      "ptt",
+      "ptt v3",
+      "ptt - test of v1.5"
+  })
+  public void serverSideLoggingDisabledForUserAgents(final String userAgent) throws Exception {
+    final SearchRequest mockedRequest = givenMinimalSearchRequestWithSingleUserAgentToFilter(userAgent);
+    final SearchResponse mockedResponse = andMinimalSearchResponse();
+    final boolean duplicate = andNoDuplication();
+    final boolean map = andNoMapFunctionalityRequired();
+
+    final BackendRequestParameters backEndParams = andUserIsNotLoggedIn();
+    andUcsPropertiesReturnsUserNotLoggedIn();
+
+    andOmnitureIsAvailable();
+
+    andIdentityServiceIsIgnored();
+
+    final TagsXmlBuilder xmlBuilder =
+        whenTagsXmlBuilderBuildsGroups(mockedRequest, mockedResponse, duplicate, map, backEndParams);
+
+    thenWeVerifyThatNoServerSideLoggingHasOccurred(xmlBuilder);
+  }
+
+  @Test
+  @Parameters({
+      "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:33.0) Gecko/20100101 Firefox/33.0",
+      "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML\\, like Gecko) Chrome/38.0.2125.111 Safari/537.36"
+  })
+  public void serverSideLoggingEnabledForUserAgents(final String userAgent) throws Exception {
+    final SearchRequest mockedRequest = givenMinimalSearchRequestWithSingleUserAgentToFilter(userAgent);
+    final SearchResponse mockedResponse = andMinimalSearchResponse();
+    final boolean duplicate = andNoDuplication();
+    final boolean map = andNoMapFunctionalityRequired();
+
+    final BackendRequestParameters backEndParams = andUserIsNotLoggedIn();
+    andUcsPropertiesReturnsUserNotLoggedIn();
+
+    andOmnitureIsAvailable();
+
+    andIdentityServiceIsIgnored();
+
+    final TagsXmlBuilder xmlBuilder =
+        whenTagsXmlBuilderBuildsGroups(mockedRequest, mockedResponse, duplicate, map, backEndParams);
+
+    thenWeVerifyThatServerSideLoggingHasOccurred(xmlBuilder);
+  }
+
+  private void thenWeVerifyThatServerSideLoggingHasOccurred(TagsXmlBuilder xmlBuilder) throws Exception {
+    verifyPrivate(xmlBuilder, VerificationModeFactory.times(1)).invoke("recordPageView", anyBoolean());
+  }
+
+  private void thenWeVerifyThatNoServerSideLoggingHasOccurred(TagsXmlBuilder xmlBuilder) throws Exception {
+    verifyPrivate(xmlBuilder, VerificationModeFactory.times(0)).invoke("recordPageView", anyBoolean());
+  }
+
+  private TagsXmlBuilder whenTagsXmlBuilderBuildsGroups(SearchRequest mockedRequest, SearchResponse mockedResponse, boolean duplicate, boolean map, BackendRequestParameters backEndParams) {
+    final TagsXmlBuilder xmlBuilder =
+        spy(new TagsXmlBuilder(mockedRequest, mockedResponse, duplicate, map, backEndParams));
+    xmlBuilder.buildGroups(false, false, false, false);
+    return xmlBuilder;
+  }
+
+  private void andIdentityServiceIsIgnored() throws Exception {
+    final IdentityServiceInterface idService = mock(IdentityServiceInterface.class);
+    when(idService.getIDValue()).thenReturn("");
+    whenNew(IdentityServiceInterface.class).withAnyArguments().thenReturn(idService);
+  }
+
+  private void andOmnitureIsAvailable() throws Exception {
+    final OmnitureAvailabilityMonitor spiedOmnitureMonitor = spy(OmnitureAvailabilityMonitor.getInstance());
+    doReturn(true).when(spiedOmnitureMonitor).isAvailable();
+    mockStatic(OmnitureAvailabilityMonitor.class);
+    doReturn(spiedOmnitureMonitor).when(OmnitureAvailabilityMonitor.class, "getInstance");
+  }
+
+  private void andUcsPropertiesReturnsUserNotLoggedIn() throws Exception {
+    final UcsProperties spiedProps = spy(UcsProperties.getInstance());
+    doReturn("true").when(spiedProps).getProperty(UcsProperties.DUAL_LOGGING_ON);
+    mockStatic(UcsProperties.class);
+    doReturn(spiedProps).when(UcsProperties.class, "getInstance");
+  }
+
+  private BackendRequestParameters andUserIsNotLoggedIn() {
+    return new BackendRequestParameters(
+        new HashMap() {{
+          put(BackendRequestParameters.PARAM_LOGGED_IN, new String[] {"false"});
+        }}
+    );
+  }
+
+  private boolean andNoMapFunctionalityRequired() {
+    return false;
+  }
+
+  private boolean andNoDuplication() {
+    return false;
+  }
+
+  private SearchResponse andMinimalSearchResponse() {
+    final SearchResponse mockedResponse = mock(SearchResponse.class);
+    when(mockedResponse.hasInAreaResults()).thenReturn(false);
+    when(mockedResponse.hasOutOfAreaResults()).thenReturn(false);
+    when(mockedResponse.getSearchState()).thenReturn(SearchState.haveResultsState);
+    return mockedResponse;
+  }
+
+  private SearchRequest givenMinimalSearchRequestWithSingleUserAgentToFilter(final String userAgent) {
+    final SearchRequest mockedRequest = mock(SearchRequest.class);
+    when(mockedRequest.getUserBroswerIP()).thenReturn("127.0.0.1");
+    when(mockedRequest.getUniqueVisitorId()).thenReturn("1010011");
+    when(mockedRequest.getSearchTimings()).thenReturn(new SearchTimings());
+    when(mockedRequest.getUserAgent()).thenReturn(userAgent);
+    when(mockedRequest.getUserTerms()).thenReturn(new UserTerms("reading", "plumbers", null));
+    return mockedRequest;
+  }
+}
