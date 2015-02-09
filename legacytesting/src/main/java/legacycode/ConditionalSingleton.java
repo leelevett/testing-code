@@ -1,15 +1,11 @@
 package legacycode;
 
-import javassist.NotFoundException;
-
-import org.mockito.internal.creation.instance.InstantationException;
-
 public class ConditionalSingleton {
   private ConditionalSingleton() {
     // Simulate some legacy code behaviour.
     if (this.getClass().getClassLoader().getResource("conditional.singleton.properties") == null) {
-      throw new InstantationException("ConditionalSingleton couldn't be created...",
-          new NotFoundException("Didn't find conditional.singleton.properties"));
+      throw new InstantiationError(
+          "ConditionalSingleton couldn't be created: Didn't find conditional.singleton.properties");
     }
   }
 
@@ -19,5 +15,9 @@ public class ConditionalSingleton {
 
   public static ConditionalSingleton getInstance() {
     return SingletonHolder.INSTANCE;
+  }
+
+  public boolean isAvailable() {
+    return false; // We will mock this to true.
   }
 }
