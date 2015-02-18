@@ -2,16 +2,15 @@ package legacycode;
 
 public class LegacyCode {
   private static final boolean conditionalAvailable = ConditionalSingleton.getInstance().isAvailable();
-  private static final boolean propertyTrue = PropertyHolder.getInstance().getProperty();
   private final LegacyIdProvider idProvider;
 
   public LegacyCode() {
-    idProvider = new LegacyIdProvider("12345");
+    idProvider = new LegacyIdProvider("");
   }
 
-  public void doLegacyOperation() {
-    if (conditionalAvailable && propertyTrue) {
-      if (idProvider.getId().equals("12345")) {
+  public void doLegacyOperation(final String parameter) {
+    if (conditionalAvailable) {
+      if (idProvider.getId().equals("12345") && RegexTester.isParameterMatching(parameter)) {
         doThis();
       } else {
         doThat();
