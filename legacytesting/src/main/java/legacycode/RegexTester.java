@@ -3,7 +3,7 @@ package legacycode;
 import java.util.regex.Pattern;
 
 public class RegexTester {
-  private static final Pattern PATTERN = Pattern.compile("matching");
+  private static final Pattern PATTERN = Pattern.compile(".*?matching.*?");
 
   private RegexTester() {}
 

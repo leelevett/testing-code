@@ -1,13 +1,17 @@
 package legacycode;
 
+import junitparams.JUnitParamsRunner;
+import junitparams.Parameters;
 import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.modules.junit4.rule.PowerMockRule;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -21,12 +25,21 @@ import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
 
-@RunWith(PowerMockRunner.class)
+// 8 So we can't use PowerMockRunner any more if we want to use parameters for testing. New runner is...
+// And now we need the x-stream thing. This is in preference to the JUnit rule for params, which are class wide.
+// This can use several tests.
+//@RunWith(PowerMockRunner.class)
+@RunWith(JUnitParamsRunner.class)
+
 // Legacy code cos that's where the statics are used. The statics themselves... Ordering matters.
 @PrepareForTest({
-    LegacyCode.class, ConditionalSingleton.class
+    LegacyCode.class, ConditionalSingleton.class, LegacyIdProvider.class
 })
 public class LegacyCodeTest {
+  // 8.2: Can't use PowerMockRunner? Use PowerMockRule instead :)
+  @Rule
+  public PowerMockRule rule = new PowerMockRule();
+
   // 3. We can not use @Rule TemporaryFolder as this is properties and we *need* it to be in "resources". Not tmp.
   // Hence this fudging.
   public static Path resourcePath;
@@ -55,11 +68,25 @@ public class LegacyCodeTest {
   }
 
   @Test
-  public void testInnerMethodCall() throws Exception {
+  // 8.3: Add Annotation, which fills the new parameter in test method.
+  @Parameters({"matching", "also matching"})
+  public void testMatchingInnerMethodCall(final String parameter) throws Exception {
     LegacyCode legacy = givenNewLegacyCodeObjectWithId();
 
-    whenLegacyOperationIsPerformed(legacy);
+    whenLegacyOperationIsPerformed(legacy, parameter);
 
+    // 9. Inner class method verification. What powermock is supposed to do...
+    // verify doThat & inner method called.
+  }
+
+  @Test
+  @Parameters({"unmatched", "not a match"})
+  public void testUnMatchedInnerMethodCall(final String parameter) throws Exception {
+    LegacyCode legacy = givenNewLegacyCodeObjectWithId();
+
+    whenLegacyOperationIsPerformed(legacy, parameter);
+
+    // 9. Inner class method verification. What powermock is supposed to do...
     // verify doThat & inner method called.
   }
 
@@ -72,7 +99,7 @@ public class LegacyCodeTest {
     return new LegacyCode();
   }
 
-  private void whenLegacyOperationIsPerformed(LegacyCode legacy) {
-    legacy.doLegacyOperation("matching"); //8 TODO PARAMETERS!
+  private void whenLegacyOperationIsPerformed(final LegacyCode legacy, final String parameter) {
+    legacy.doLegacyOperation(parameter);
   }
 }

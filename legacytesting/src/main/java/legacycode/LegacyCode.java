@@ -9,21 +9,20 @@ public class LegacyCode {
   }
 
   public void doLegacyOperation(final String parameter) {
-    if (conditionalAvailable) {
-      if (idProvider.getId().equals("12345") && RegexTester.isParameterMatching(parameter)) {
-        doThis();
+    if (conditionalAvailable && idProvider.getId().equals("12345")) {
+      if (RegexTester.isParameterMatching(parameter)) {
+        matchingOperation();
       } else {
-        doThat();
+        unMatchedOperation();
       }
     }
   }
 
-  private void doThis() {
-    System.out.println("Don't do this");
+  private void matchingOperation() {
+    System.out.println("Matching...");
   }
 
-  private void doThat() {
-    System.out.println("Do that");
-
+  private void unMatchedOperation() {
+    System.out.println("Un-matched...");
   }
 }
