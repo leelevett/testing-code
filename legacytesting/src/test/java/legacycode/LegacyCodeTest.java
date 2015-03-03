@@ -2,6 +2,7 @@ package legacycode;
 
 import junitparams.JUnitParamsRunner;
 import junitparams.Parameters;
+
 import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -10,7 +11,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.rule.PowerMockRule;
 
 import java.io.IOException;
@@ -24,7 +24,10 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
+import static org.powermock.api.mockito.PowerMockito.verifyPrivate;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
 
+// 10. Note: Groovy mocks and Java don't mix. Find out why and explain. Use powermocks.
 // 8 So we can't use PowerMockRunner any more if we want to use parameters for testing. New runner is...
 // And now we need the x-stream thing. This is in preference to the JUnit rule for params, which are class wide.
 // This can use several tests.
@@ -76,7 +79,8 @@ public class LegacyCodeTest {
     whenLegacyOperationIsPerformed(legacy, parameter);
 
     // 9. Inner class method verification. What powermock is supposed to do...
-    // verify doThat & inner method called.
+    verifyPrivate(legacy, times(1)).invoke("matchingOperation");
+    //verifyPrivate(legacy, VerificationModeFactory.times(0)).invoke("unMatchedOperation");
   }
 
   @Test
@@ -87,7 +91,8 @@ public class LegacyCodeTest {
     whenLegacyOperationIsPerformed(legacy, parameter);
 
     // 9. Inner class method verification. What powermock is supposed to do...
-    // verify doThat & inner method called.
+    //verifyPrivate(legacy, VerificationModeFactory.times(0)).invoke("matchingOperation");
+    verifyPrivate(legacy, times(1)).invoke("unMatchedOperation");
   }
 
   private LegacyCode givenNewLegacyCodeObjectWithId() throws Exception {
