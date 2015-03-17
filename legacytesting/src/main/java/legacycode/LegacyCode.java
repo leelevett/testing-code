@@ -19,10 +19,10 @@ public class LegacyCode {
   }
 
   private void matchingOperation() {
-    System.out.println("Matching...");
+    return;
   }
 
   private void unMatchedOperation() {
-    System.out.println("Un-matched...");
+    return;
   }
 }
