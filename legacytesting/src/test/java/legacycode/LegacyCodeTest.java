@@ -10,7 +10,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.modules.junit4.rule.PowerMockRule;
 
 import java.io.IOException;
@@ -24,6 +23,10 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.spy;
 import static org.powermock.api.mockito.PowerMockito.when;
 import static org.powermock.api.mockito.PowerMockito.whenNew;
+
+// 0! Groovy conversion will have a few gotchas. Worth mentioning. Can use Powermockito.
+// Only with Rule. Runner needs to remain spock based. Rule incompatible with JAXB, if you need
+// to mock that or use it, you may well have problems and should stick with Java based tests for now.
 
 // 8 So we can't use PowerMockRunner any more if we want to use parameters for testing. New runner is...
 // And now we need the x-stream thing. This is in preference to the JUnit rule for params, which are class wide.
