@@ -84,7 +84,7 @@ public class LegacyCodeTest {
 
     // 9. Inner class method verification. What powermock is supposed to do...
     verifyPrivate(legacy, times(1)).invoke("matchingOperation");
-    //verifyPrivate(legacy, VerificationModeFactory.times(0)).invoke("unMatchedOperation");
+    verifyPrivate(legacy, times(0)).invoke("unMatchedOperation");
   }
 
   @Test
@@ -95,7 +95,7 @@ public class LegacyCodeTest {
     whenLegacyOperationIsPerformed(legacy, parameter);
 
     // 9. Inner class method verification. What powermock is supposed to do...
-    //verifyPrivate(legacy, VerificationModeFactory.times(0)).invoke("matchingOperation");
+    verifyPrivate(legacy, times(0)).invoke("matchingOperation");
     verifyPrivate(legacy, times(1)).invoke("unMatchedOperation");
   }
 
@@ -105,7 +105,7 @@ public class LegacyCodeTest {
     final LegacyIdProvider idProvider = mock(LegacyIdProvider.class);
     when(idProvider.getId()).thenReturn("12345");
     whenNew(LegacyIdProvider.class).withAnyArguments().thenReturn(idProvider); // 2.1 constructor mocking!
-    return new LegacyCode();
+    return spy(new LegacyCode()); // 11. SPY Or verify won't work. Needs to be prepared too.
   }
 
   private void whenLegacyOperationIsPerformed(final LegacyCode legacy, final String parameter) {
