@@ -31,29 +31,17 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 // Only with Rule. Runner needs to remain spock based. Rule incompatible with JAXB, if you need
 // to mock that or use it, you may well have problems and should stick with Java based tests for now.
 
-// 10. Note: Groovy mocks and Java don't mix. Find out why and explain. Use powermocks.
-// 8 So we can't use PowerMockRunner any more if we want to use parameters for testing. New runner is...
-// And now we need the x-stream thing. This is in preference to the JUnit rule for params, which are class wide.
-// This can use several tests.
-//@RunWith(PowerMockRunner.class)
 @RunWith(JUnitParamsRunner.class)
-
-// Legacy code cos that's where the statics are used. The statics themselves... Ordering matters.
 @PrepareForTest({
     LegacyCode.class, ConditionalSingleton.class, LegacyIdProvider.class
 })
 public class LegacyCodeTest {
-  // 8.2: Can't use PowerMockRunner? Use PowerMockRule instead :)
   @Rule
   public PowerMockRule rule = new PowerMockRule();
-
-  // 3. We can not use @Rule TemporaryFolder as this is properties and we *need* it to be in "resources". Not tmp.
-  // Hence this fudging.
   public static Path resourcePath;
 
   @BeforeClass
   public static void setUpClass() throws IOException {
-    // 4. note: test-classes. That took an age to figure out. For when you haven't got anywhere to put resources to be compiled into test-classes.
     resourcePath = Paths.get("target/test-classes/conditional.singleton.properties");
     Files.createFile(resourcePath);
   }
@@ -64,25 +52,22 @@ public class LegacyCodeTest {
     }
   }
 
-  // 5. Mock the singleton. static mocking to get mocked object which we make return true for the call.
   @Before
   public void setUpTest() throws Exception {
     final ConditionalSingleton spiedConditional = spy(ConditionalSingleton.getInstance());
-    doReturn(true).when(spiedConditional).isAvailable(); // 6. doReturn required for spying. See docs.
+    doReturn(true).when(spiedConditional).isAvailable();
 
-    mockStatic(ConditionalSingleton.class); // 7. PrepareForTest!
+    mockStatic(ConditionalSingleton.class);
     doReturn(spiedConditional).when(ConditionalSingleton.class, "getInstance");
   }
 
   @Test
-  // 8.3: Add Annotation, which fills the new parameter in test method.
   @Parameters({"matching", "also matching"})
   public void testMatchingInnerMethodCall(final String parameter) throws Exception {
     LegacyCode legacy = givenNewLegacyCodeObjectWithId();
 
     whenLegacyOperationIsPerformed(legacy, parameter);
 
-    // 9. Inner class method verification. What powermock is supposed to do...
     verifyPrivate(legacy, times(1)).invoke("matchingOperation");
     verifyPrivate(legacy, times(0)).invoke("unMatchedOperation");
   }
@@ -94,18 +79,15 @@ public class LegacyCodeTest {
 
     whenLegacyOperationIsPerformed(legacy, parameter);
 
-    // 9. Inner class method verification. What powermock is supposed to do...
     verifyPrivate(legacy, times(0)).invoke("matchingOperation");
     verifyPrivate(legacy, times(1)).invoke("unMatchedOperation");
   }
 
   private LegacyCode givenNewLegacyCodeObjectWithId() throws Exception {
-    // 1. mock id provider. Constructors.
-    // 2. PowerMockRunner
     final LegacyIdProvider idProvider = mock(LegacyIdProvider.class);
     when(idProvider.getId()).thenReturn("12345");
-    whenNew(LegacyIdProvider.class).withAnyArguments().thenReturn(idProvider); // 2.1 constructor mocking!
-    return spy(new LegacyCode()); // 11. SPY Or verify won't work. Needs to be prepared too.
+    whenNew(LegacyIdProvider.class).withAnyArguments().thenReturn(idProvider);
+    return spy(new LegacyCode());
   }
 
   private void whenLegacyOperationIsPerformed(final LegacyCode legacy, final String parameter) {

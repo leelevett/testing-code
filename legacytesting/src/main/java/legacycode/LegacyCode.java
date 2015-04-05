@@ -9,6 +9,9 @@ public class LegacyCode {
   }
 
   public void doLegacyOperation(final String parameter) {
+    System.out.println(conditionalAvailable);
+    System.out.println(idProvider.getId());
+
     if (conditionalAvailable && idProvider.getId().equals("12345")) {
       if (RegexTester.isParameterMatching(parameter)) {
         matchingOperation();
@@ -18,11 +21,7 @@ public class LegacyCode {
     }
   }
 
-  private void matchingOperation() {
-    return;
-  }
+  private void matchingOperation() {}
 
-  private void unMatchedOperation() {
-    return;
-  }
+  private void unMatchedOperation() {}
 }
