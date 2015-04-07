@@ -10,13 +10,10 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 import static org.mockito.internal.verification.VerificationModeFactory.times
-import static org.mockito.internal.verification.VerificationModeFactory.times
-import static org.powermock.api.mockito.PowerMockito.doReturn
 import static org.powermock.api.mockito.PowerMockito.doReturn
 import static org.powermock.api.mockito.PowerMockito.mock
 import static org.powermock.api.mockito.PowerMockito.mockStatic
 import static org.powermock.api.mockito.PowerMockito.spy
-import static org.powermock.api.mockito.PowerMockito.verifyPrivate
 import static org.powermock.api.mockito.PowerMockito.verifyPrivate
 import static org.powermock.api.mockito.PowerMockito.when
 import static org.powermock.api.mockito.PowerMockito.whenNew
@@ -40,18 +37,10 @@ class LegacyCodeTestGroovy extends Specification {
     }
   }
 
-  def setupX() {
-    final spiedConditional = spy(ConditionalSingleton.getInstance())
-    doReturn(true).when(spiedConditional).isAvailable()
-
-    mockStatic(ConditionalSingleton.class)
-    doReturn(spiedConditional).when(ConditionalSingleton, "getInstance")
-  }
-
   // 4. copy this lot in.
   def "test matching inner method call" (paramValue) {
     given:
-      setupX()
+      spyOnConditionalSingletonMakingItAvailable()
       def legacyCodeSpy = newSpiedLegacyCodeWithId()
     when:
       legacyCodeSpy.doLegacyOperation(paramValue)
@@ -62,12 +51,34 @@ class LegacyCodeTestGroovy extends Specification {
       paramValue << ["matching", "also matching"]
   }
 
+  def "test unmatched inner method call" (paramValue) {
+    given:
+      spyOnConditionalSingletonMakingItAvailable()
+      def legacyCodeSpy = newSpiedLegacyCodeWithId()
+    when:
+      legacyCodeSpy.doLegacyOperation(paramValue)
+    then:
+      verifyPrivate(legacyCodeSpy, times(0)).invoke("matchingOperation")
+      verifyPrivate(legacyCodeSpy, times(1)).invoke("unMatchedOperation")
+    where:
+      paramValue << ["unmatched", "not a match"]
+  }
+
   // 3 copy this lot in,
-  private LegacyCode newSpiedLegacyCodeWithId() throws Exception {
+  private static LegacyCode newSpiedLegacyCodeWithId() throws Exception {
     final idProvider = mock(LegacyIdProvider.class)
     when(idProvider.getId()).thenReturn("12345")
     whenNew(LegacyIdProvider.class).withAnyArguments().thenReturn(idProvider)
 
     return spy(new LegacyCode())
+  }
+
+  // 6. So it seems this can't be done in setup? scoping issue of some sort.
+  private static spyOnConditionalSingletonMakingItAvailable() {
+    final spiedConditional = spy(ConditionalSingleton.getInstance())
+    doReturn(true).when(spiedConditional).isAvailable()
+
+    mockStatic(ConditionalSingleton.class)
+    doReturn(spiedConditional).when(ConditionalSingleton, "getInstance")
   }
 }
