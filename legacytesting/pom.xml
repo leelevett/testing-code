@@ -33,6 +33,7 @@
                         </goals>
                     </execution>
                 </executions>
+                <!-- 0.1 invokeDynamic. Don't forget the faffing about with indy deps! -->
                 <configuration>
                     <invokeDynamic>true</invokeDynamic>
                 </configuration>
@@ -94,12 +95,19 @@
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
             <version>2.4.1</version>
+            <classifier>indy</classifier>
         </dependency>
         <dependency>
             <groupId>org.spockframework</groupId>
             <artifactId>spock-core</artifactId>
             <version>0.7-groovy-2.0</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.codehaus.groovy</groupId>
+                    <artifactId>groovy-all</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 	</dependencies>
 </project>
