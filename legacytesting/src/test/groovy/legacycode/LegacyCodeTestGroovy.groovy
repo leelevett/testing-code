@@ -41,6 +41,17 @@ class LegacyCodeTestGroovy extends Specification {
   def "test matching inner method call" (paramValue) {
     given:
       spyOnConditionalSingletonMakingItAvailable()
+
+//      Works, but isn't scoped into Java object. PowerMockRule probably needs to know about this.
+//      ConditionalSingleton singleton = ConditionalSingleton.getInstance()
+//      singleton.metaClass.isAvailable = {
+//        true
+//      }
+//      ConditionalSingleton.metaClass.static.getInstance = {
+//        singleton
+//      }
+//      println ConditionalSingleton.getInstance().isAvailable()
+
       def legacyCodeSpy = newSpiedLegacyCodeWithId()
     when:
       legacyCodeSpy.doLegacyOperation(paramValue)
