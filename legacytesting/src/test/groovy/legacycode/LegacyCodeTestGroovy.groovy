@@ -1,5 +1,6 @@
 package legacycode
 
+import groovy.sql.GroovyRowResult
 import org.apache.commons.io.FileUtils
 import org.junit.Rule
 import org.powermock.core.classloader.annotations.PrepareForTest
@@ -21,7 +22,7 @@ import static org.powermock.api.mockito.PowerMockito.whenNew
 // 1. All the POM things. 1.6.2, try it at work. Went wibbly at home.
 // 2. Rename test class to avoid clash.
 //6. Do the powermocking...
-@PrepareForTest([ ConditionalSingleton, LegacyIdProvider, LegacyCode ])
+@PrepareForTest([ ConditionalSingleton, LegacyIdProvider, LegacyCode, GroovyCondition ])
 class LegacyCodeTestGroovy extends Specification {
   @Rule PowerMockRule rule = new PowerMockRule()
   def static resourcePath
@@ -41,16 +42,17 @@ class LegacyCodeTestGroovy extends Specification {
   def "test matching inner method call" (paramValue) {
     given:
       spyOnConditionalSingletonMakingItAvailable()
+    and:
+      // 9 Good lord that was hard work. Mock results THEN spy constructor. Not certain as to why.
+      def mocked = Mock(GroovyCondition)
+      mocked.isAllowed() >> true
+      // 10, This one works for in the Groovy test... Might do an uncomment this section to prove it works bit?
+      GroovySpy(GroovyCondition, global: true) // 8 consider the args for constructor here. GroovyMock - JAVA Or things break, by not working.
+      new GroovyCondition() >> mocked
+      println new GroovyCondition().isAllowed()
 
-//      Works, but isn't scoped into Java object. PowerMockRule probably needs to know about this.
-//      ConditionalSingleton singleton = ConditionalSingleton.getInstance()
-//      singleton.metaClass.isAvailable = {
-//        true
-//      }
-//      ConditionalSingleton.metaClass.static.getInstance = {
-//        singleton
-//      }
-//      println ConditionalSingleton.getInstance().isAvailable()
+      // 10. This one works for in the Java Powermocked class! Yikes.
+      whenNew(GroovyCondition.class).withAnyArguments().thenReturn(mocked)
 
       def legacyCodeSpy = newSpiedLegacyCodeWithId()
     when:
