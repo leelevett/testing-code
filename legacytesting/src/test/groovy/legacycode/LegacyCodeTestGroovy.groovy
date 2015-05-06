@@ -1,6 +1,5 @@
 package legacycode
 
-import groovy.sql.GroovyRowResult
 import org.apache.commons.io.FileUtils
 import org.junit.Rule
 import org.powermock.core.classloader.annotations.PrepareForTest
@@ -11,13 +10,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 import static org.mockito.internal.verification.VerificationModeFactory.times
-import static org.powermock.api.mockito.PowerMockito.doReturn
-import static org.powermock.api.mockito.PowerMockito.mock
-import static org.powermock.api.mockito.PowerMockito.mockStatic
-import static org.powermock.api.mockito.PowerMockito.spy
-import static org.powermock.api.mockito.PowerMockito.verifyPrivate
-import static org.powermock.api.mockito.PowerMockito.when
-import static org.powermock.api.mockito.PowerMockito.whenNew
+import static org.powermock.api.mockito.PowerMockito.*
 
 // 1. All the POM things. 1.6.2, try it at work. Went wibbly at home.
 // 2. Rename test class to avoid clash.
