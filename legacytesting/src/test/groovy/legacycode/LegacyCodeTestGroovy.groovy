@@ -43,16 +43,8 @@ class LegacyCodeTestGroovy extends Specification {
     given:
       spyOnConditionalSingletonMakingItAvailable()
     and:
-      // 9 Good lord that was hard work. Mock results THEN spy constructor. Not certain as to why.
-      def mocked = Mock(GroovyCondition)
-      mocked.isAllowed() >> true
-      // 10, This one works for in the Groovy test... Might do an uncomment this section to prove it works bit?
-      GroovySpy(GroovyCondition, global: true) // 8 consider the args for constructor here. GroovyMock - JAVA Or things break, by not working.
-      new GroovyCondition() >> mocked
-      println new GroovyCondition().isAllowed()
-
-      // 10. This one works for in the Java Powermocked class! Yikes.
-      whenNew(GroovyCondition.class).withAnyArguments().thenReturn(mocked)
+      // 13. Change to expando to make a point.
+      mockAllGroovyConditionConstructors()
 
       def legacyCodeSpy = newSpiedLegacyCodeWithId()
     when:
@@ -67,6 +59,9 @@ class LegacyCodeTestGroovy extends Specification {
   def "test unmatched inner method call" (paramValue) {
     given:
       spyOnConditionalSingletonMakingItAvailable()
+    and:
+      mockAllGroovyConditionConstructors()
+
       def legacyCodeSpy = newSpiedLegacyCodeWithId()
     when:
       legacyCodeSpy.doLegacyOperation(paramValue)
@@ -75,6 +70,28 @@ class LegacyCodeTestGroovy extends Specification {
       verifyPrivate(legacyCodeSpy, times(1)).invoke("unMatchedOperation")
     where:
       paramValue << ["unmatched", "not a match"]
+  }
+
+  private void mockAllGroovyConditionConstructors() {
+    // 9 Good lord that was hard work. Mock results THEN spy constructor. Not certain as to why.
+    def mocked = Mock(GroovyCondition)
+    mocked.isAllowed() >> true
+    // 10, This one works for in the Groovy test... Might do an uncomment this section to prove it works bit?
+    GroovySpy(GroovyCondition, global: true) // 8 consider the args for constructor here. GroovyMock - JAVA Or things break, by not working.
+    new GroovyCondition() >> mocked
+
+    // 10. This one works for in the Java Powermocked class! Yikes.
+    whenNew(GroovyCondition.class).withAnyArguments().thenReturn(mocked)
+  }
+
+  private void expandoMockAllGroovyConditionConstructors() {
+    def expandoMetaClass = new ExpandoMetaClass(GroovyCondition, true)
+    expandoMetaClass.isAllowed = { -> true }
+    expandoMetaClass.initialize()
+    final GroovyCondition groovyCondition = new GroovyCondition()
+    groovyCondition.metaClass = expandoMetaClass
+
+    whenNew(GroovyCondition.class).withAnyArguments().thenReturn(groovyCondition)
   }
 
   // 3 copy this lot in,
