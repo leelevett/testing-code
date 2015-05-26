@@ -12,15 +12,11 @@ import java.nio.file.Paths
 import static org.mockito.internal.verification.VerificationModeFactory.times
 import static org.powermock.api.mockito.PowerMockito.*
 
-// 1. All the POM things. 1.6.2, try it at work. Went wibbly at home.
-// 2. Rename test class to avoid clash.
-//6. Do the powermocking...
 @PrepareForTest([ ConditionalSingleton, LegacyIdProvider, LegacyCode, GroovyCondition ])
 class LegacyCodeTestGroovy extends Specification {
   @Rule PowerMockRule rule = new PowerMockRule()
   def static resourcePath
 
-  // 5. deal with this.
   def setupSpec() {
     resourcePath = Paths.get("target/test-classes/conditional.singleton.properties");
     Files.createFile(resourcePath);
@@ -31,12 +27,10 @@ class LegacyCodeTestGroovy extends Specification {
     }
   }
 
-  // 4. copy this lot in.
   def "test matching inner method call" (paramValue) {
     given:
       spyOnConditionalSingletonMakingItAvailable()
     and:
-      // 13. Change to expando to make a point.
       mockAllGroovyConditionConstructors()
 
       def legacyCodeSpy = newSpiedLegacyCodeWithId()
@@ -66,14 +60,9 @@ class LegacyCodeTestGroovy extends Specification {
   }
 
   private void mockAllGroovyConditionConstructors() {
-    // 9 Good lord that was hard work. Mock results THEN spy constructor. Not certain as to why.
     def mocked = Mock(GroovyCondition)
     mocked.isAllowed() >> true
-    // 10, This one works for in the Groovy test... Might do an uncomment this section to prove it works bit?
-    GroovySpy(GroovyCondition, global: true) // 8 consider the args for constructor here. GroovyMock - JAVA Or things break, by not working.
-    new GroovyCondition() >> mocked
 
-    // 10. This one works for in the Java Powermocked class! Yikes.
     whenNew(GroovyCondition.class).withAnyArguments().thenReturn(mocked)
   }
 
@@ -87,7 +76,6 @@ class LegacyCodeTestGroovy extends Specification {
     whenNew(GroovyCondition.class).withAnyArguments().thenReturn(groovyCondition)
   }
 
-  // 3 copy this lot in,
   private static LegacyCode newSpiedLegacyCodeWithId() throws Exception {
     final idProvider = mock(LegacyIdProvider.class)
     when(idProvider.getId()).thenReturn("12345")
@@ -96,7 +84,6 @@ class LegacyCodeTestGroovy extends Specification {
     return spy(new LegacyCode())
   }
 
-  // 6. So it seems this can't be done in setup? scoping issue of some sort.
   private static spyOnConditionalSingletonMakingItAvailable() {
     final spiedConditional = spy(ConditionalSingleton.getInstance())
     doReturn(true).when(spiedConditional).isAvailable()

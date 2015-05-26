@@ -15,12 +15,13 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.5.1</version>
+                <!-- Now using Java 1.8 to show use of invokeDynamic -->
 				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
+					<source>1.8</source>
+					<target>1.8</target>
 				</configuration>
 			</plugin>
-            <!-- Gmaven plus to run tests in groovy dir. You can configure other locations here. Note; invoke dynamic -->
+            <!-- New plugin to compile our Groovy code -->
             <plugin>
                 <groupId>org.codehaus.gmavenplus</groupId>
                 <artifactId>gmavenplus-plugin</artifactId>
@@ -33,7 +34,6 @@
                         </goals>
                     </execution>
                 </executions>
-                <!-- 0.1 invokeDynamic. Don't forget the faffing about with indy deps! -->
                 <configuration>
                     <invokeDynamic>true</invokeDynamic>
                 </configuration>
@@ -90,7 +90,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Getting groovy & spock running needs these... -->
+        <!-- New dependencies for Groovy -->
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
@@ -101,7 +101,7 @@
             <groupId>cglib</groupId>
             <artifactId>cglib-nodep</artifactId>
             <version>3.1</version>
-        </dependency><!-- Mock/Spy vs GroovyMock/GroovySpy -->
+        </dependency>
         <dependency>
             <groupId>org.spockframework</groupId>
             <artifactId>spock-core</artifactId>
