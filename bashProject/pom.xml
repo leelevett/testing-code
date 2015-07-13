@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <artifactId>bash-project</artifactId>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>leelevett</groupId>
+    <name>bash project</name>
+    <version>1.0</version>
+
+    <profiles>
+        <profile>
+            <id>linux</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.googlecode.maven-download-plugin</groupId>
+                        <artifactId>download-maven-plugin</artifactId>
+                        <version>1.2.1</version>
+                        <executions>
+                            <execution>
+                                <id>install-shunit</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>wget</goal>
+                                </goals>
+                                <configuration>
+                                    <url>https://shunit2.googlecode.com/files/shunit2-2.1.6.tgz</url>
+                                    <unpack>true</unpack>
+                                    <outputDirectory>${project.basedir}/src/test/lib</outputDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <plugin>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <version>1.4.0</version>
+                        <executions>
+                            <execution>
+                                <id>bash-tests</id>
+                                <phase>test</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <workingDirectory>${project.basedir}/src/test/bin</workingDirectory>
+                            <executable>${project.basedir}/src/test/bin/prop-service-test.sh</executable>
+                        </configuration>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <version>2.5.5</version>
+                        <configuration>
+                            <descriptor>${project.basedir}/src/main/assembly/assembly.xml</descriptor>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>make</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>assembly</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>
