@@ -1,4 +1,4 @@
-package spring-rabbitmq;
+package springrabbitmq;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
