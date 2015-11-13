@@ -8,6 +8,7 @@ import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,13 +23,13 @@ import org.springframework.context.annotation.PropertySource;
 //@PropertySource("classpath:consumer.properties")
 public class ConsumerConfig {
   //@Value("${spring.rabbitmq.username}")
-  private String username;
+  private String username = "guest";
   //@Value("${spring.rabbitmq.password}")
-  private String password;
+  private String password = "guest";
   //@Value("${spring.rabbitmq.host}")
-  private String host;
+  private String host = "localhost";
   //@Value("${spring.rabbitmq.port}")
-  private int port;
+  private int port = 5672;
   //@Value("${spring.rabbitmq.virtual-host}")
   private String virtualHost;
   //@Value("${spring.rabbitmq.queue.name}")
@@ -58,7 +59,7 @@ public class ConsumerConfig {
     connectionFactory.setPassword(password);
     connectionFactory.setHost(host);
     connectionFactory.setPort(port);
-    connectionFactory.setVirtualHost(virtualHost);
+    //connectionFactory.setVirtualHost(virtualHost);
     // rabbit admin - create an exchange if not present?
     return connectionFactory;
   }
@@ -76,10 +77,14 @@ public class ConsumerConfig {
 
 /*
  * We don't *need* to define an exchange, queue and binding unless we're producing messages.
- * However, these have been defined here so as to ensure automatic creation of the required parts
- * should they not already be present on the RabbitMQ server.
+ * The consumer could simply listen for "test-queue" for example. However, these have been defined here so as to
+ * ensure automatic creation of the required parts should they not already be present on the RabbitMQ server.
+ * The RabbitAdmin bean is required so that Spring can create the necessary queues etc...
  */
-
+  @Bean
+  RabbitAdmin rabbitAdmin() {
+    return new RabbitAdmin(connectionFactory());
+  }
   @Bean
   FanoutExchange exchange() {
     return new FanoutExchange(exchangeName());
