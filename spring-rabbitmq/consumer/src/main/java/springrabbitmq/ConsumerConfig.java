@@ -30,8 +30,6 @@ public class ConsumerConfig {
   private String host = "localhost";
   //@Value("${spring.rabbitmq.port}")
   private int port = 5672;
-  //@Value("${spring.rabbitmq.virtual-host}")
-  private String virtualHost;
   //@Value("${spring.rabbitmq.queue.name}")
   String queueName;
   //@Value("${spring.rabbitmq.exchange.name}")
@@ -59,8 +57,6 @@ public class ConsumerConfig {
     connectionFactory.setPassword(password);
     connectionFactory.setHost(host);
     connectionFactory.setPort(port);
-    //connectionFactory.setVirtualHost(virtualHost);
-    // rabbit admin - create an exchange if not present?
     return connectionFactory;
   }
 

@@ -57,6 +57,23 @@
       <version>1.10.19</version>
       <scope>test</scope>
     </dependency>
+
+    <!-- Monitoring the listener can be done by simply adding these -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-actuator</artifactId>
+      <version>${spring-boot.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+      <version>${spring-boot.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jolokia</groupId>
+      <artifactId>jolokia-core</artifactId>
+      <version>1.3.0</version>
+    </dependency>
   </dependencies>
 
 	<build>
