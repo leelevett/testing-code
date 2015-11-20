@@ -8,7 +8,6 @@ import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitMessagingTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -30,17 +29,19 @@ public class ConsumerApplicationTests {
 
 	@Test
 	public void contextLoads() throws InterruptedException {
-    // Producer needed to output stuff.
-    Map<String, String> expectedMap =
+    final String expectedHeaderValue = "header";
+    final Map<String, Object> expectedHeader =
+        ImmutableMap.<String, Object>builder().put("header", expectedHeaderValue).build();
+    final Map<String, String> expectedMap =
         ImmutableMap.<String, String>builder()
             .put("first", "expected1")
             .put("second", "expected2")
             .build();
-    producer.sendToRabbitMq(expectedMap);
+    producer.sendToRabbitMq(expectedMap, expectedHeader);
     // Wait for message.
-    TimeUnit.SECONDS.sleep(5); // Change in next post for aspectJ latch.
+    TimeUnit.SECONDS.sleep(2); // Change in next post for aspectJ latch.
     // Verify data received.
-    verify(rabbitConsumer, times(1)).output(expectedMap, "test");// "expected1", "expected2");
+    verify(rabbitConsumer, times(1)).output(expectedMap, expectedHeaderValue);
 	}
 
   @ContextConfiguration(classes = ConsumerTestConfig.class)
@@ -52,9 +53,10 @@ public class ConsumerApplicationTests {
     @Autowired
     private Queue queue;
 
-    public void sendToRabbitMq(final Map<String, String> message) {
+    public void sendToRabbitMq(final Map<String, String> message, final Map<String, Object> header) {
       this.rabbitMessagingTemplate.convertAndSend(
-          exchange.getName(), queue.getName(), message, ImmutableMap.<String, Object>builder().put("header", "test").build());
+          exchange.getName(), queue.getName(),
+          message, header);
     }
   }
 }

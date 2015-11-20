@@ -9,10 +9,8 @@ import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFacto
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 
 @Configuration
 @EnableRabbit
@@ -31,9 +29,9 @@ public class ConsumerConfig {
   //@Value("${spring.rabbitmq.port}")
   private int port = 5672;
   //@Value("${spring.rabbitmq.queue.name}")
-  String queueName;
+  String queueName = "the-queue";
   //@Value("${spring.rabbitmq.exchange.name}")
-  String exchangeName;
+  String exchangeName = "the-exchange";
 
   // Makes beans for queue name and exchange name. For overriding with test versions.
   @Bean

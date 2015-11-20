@@ -10,8 +10,8 @@ import java.util.Map;
 public class RabbitConsumer {
   // SpEL not allowed in @Payload, boooooo... It is in integration.
   @RabbitListener(queues = "#{queue}")
-  public void output(final Map<String, String> mappy, @Header("header") String header) {
-    System.out.println("First: " + mappy.get("first"));
-    System.out.println("Second: " + mappy.get("second"));
+  public void output(final Map<String, String> payload, @Header("header") String header) {
+    System.out.println("First: " + payload.get("first"));
+    System.out.println("Second: " + payload.get("second"));
   }
 }
